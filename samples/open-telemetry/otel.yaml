@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opentelemetry-collector-conf
+  namespace: istio-system
+  labels:
+    app: opentelemetry-collector
+data:
+  opentelemetry-collector-config: |
+    receivers:
+      opencensus:
+        endpoint: 0.0.0.0:55678
+      otlp:
+        protocols:
+          grpc:
+          http:
+    processors:
+      batch:
+    exporters:
+      zipkin:
+        # Export to zipkin for easy querying
+        endpoint: http://zipkin.istio-system.svc:9411/api/v2/spans
+      logging:
+        loglevel: debug
+    extensions:
+      health_check:
+        port: 13133
+    service:
+      extensions:
+      - health_check
+      pipelines:
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [logging]
+        traces:
+          receivers:
+          - opencensus
+          exporters:
+          - zipkin
+          - logging
+---
