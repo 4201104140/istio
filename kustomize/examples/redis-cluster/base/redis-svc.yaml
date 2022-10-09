@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: test
+  namespace: test
+  labels:
+    s: s
+  annotations:
+spec:
+  type: test
+  clusterIP: s
+  ports:
+    - name: tcp-redis
+      port:
+      targetPort: tcp-redis
+      protocol: TCP
+      nodePort:
+  selector:

@@ -1,0 +1,21 @@
+apiVersion:
+kind: StatefulSet
+metadata:
+  name:
+  namespace:
+  labels:
+  annotations:
+spec:
+  selector:
+    matchLabels:
+  replicas:
+  serviceName:
+  template:
+    metadata:
+      labels:
+      annotations:
+  spec:
+    containers:
+      - name:
+        image:
+        

@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name:
+  namespace:
+  labels:
+  annotations:
+
+spec:
+  activeDeadlineSeconds:
+  template:
+    metadata:
+      labels:
+      annotations:
+    spec:
+      hostAliases: {{}}
+
+      affinity:
+      affinity:

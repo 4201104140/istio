@@ -17,3 +17,7 @@ token=$(kubectl -n kubernetes-dashboard create token admin-user)
 echo $token
 
 kubectl proxy
+
+
+helm dependency build 
+helm install test ./

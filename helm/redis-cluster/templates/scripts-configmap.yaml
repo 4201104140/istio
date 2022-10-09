@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ }}
+  namespace: {{ }}
+  labels: {{ }}
+  annotations: {{ }}
+
+data:
+  ping_readness_local_sh: |-
+    #!/bin/sh
+    set -e
+
+    REDIS_STATUS_FILE=/tmp/.redis_cluster_check
+
+    {{- if .Values.usePasswordFile }}
+    password_aux=`cat ${REDIS_PASSWORD_FILE}`
+    

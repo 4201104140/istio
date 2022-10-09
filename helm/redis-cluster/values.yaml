@@ -1,0 +1,95 @@
+global:
+  imageRegistry: ""
+
+## Bitnami Redis&reg; image version
+## ref: https://hub.docker.com/r/bitnami/redis/tags/
+## @param image.registry Redis&reg; cluster image registry
+## @param image.repository Redis&reg; cluster image repository
+## @param image.tag Redis&reg; cluster image tag (immutable tags are recommended)
+## @param image.digest Redis&reg; cluster image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag
+## @param image.pullPolicy Redis&reg; cluster image pull policy
+## @param image.pullSecrets Specify docker-registry secret names as an array
+## @param image.debug Enable image debug mode
+##
+image:
+  registry: docker.io
+  repository: bitnami/redis-cluster
+  ## Bitnami Redis&reg; image tag
+  ## ref: https://github.com/bitnami/containers/tree/main/bitnami/redis#supported-tags-and-respective-dockerfile-links
+  ##
+  tag: 7.0.5-debian-11-r0
+  digest: ""
+  ## Specify a imagePullPolicy
+  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+  ## ref: https://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+  ##
+  pullPolicy: IfNotPresent
+  ## Optionally specify an array of imagePullSecrets.
+  ## Secrets must be manually created in the namespace.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ## e.g:
+  ## pullSecrets:
+  ##   - myRegistryKeySecretName
+  ##
+  pullSecrets: []
+  ## Enable debug mode
+  ##
+  debug: false
+
+redis:
+  ## @param redis.containerPorts.redis Redis&reg; port
+  ## @param redis.containerPorts.bus The busPort should be obtained adding 10000 to the redisPort. By default: 10000 + 6379 = 16379
+  ##
+  containerPorts:
+    redis: 6379
+    bus: 16379
+
+## Redis&reg; Service properties for standalone mode.
+##
+service:
+  ## @param service.ports.redis Kubernetes Redis service port
+  ##
+  ports:
+    redis: 6379
+
+  ## @param service.type Service type for default redis service
+  ## Setting this to LoadBalancer may require corresponding service annotations for loadbalancer creation to succeed.
+  ## Currently supported types are ClusterIP (default) and LoadBalancer
+  ##
+  type: ClusterIP
+
+## Enable persistence using Persistent Volume Claims
+## ref: https://kubernetes.io/docs/user-guide/persistent-volumes/
+##
+persistence:
+  path: /bitnami/redis/data
+
+  subPath: ""
+  ## @param persistence.accessModes Persistent Volume Access Modes
+  ##
+  accessModes:
+    - ReadWriteOnce
+  ## @param persistence.size Size of data volume
+  ##
+  size: 8Gi
+  ## @param persistence.matchLabels Persistent Volume selectors
+  ## https://kubernetes.io/docs/concepts/storage/persistent-volumes/#selector
+  ##
+  matchLabels: {}
+## Redis&reg; Cluster settings
+##
+cluster:
+
+  nodes: 6
+
+  ## Configuration to access the Redis&reg; Cluster from outside the Kubernetes cluster
+  ##
+  externalAccess:
+    ## @param cluster.externalAccess.enabled Enable access to the Redis
+    ##
+    enabled: false
+    service:
+      ## @param cluster.externalAccess.service.type Type for the services used to expose every Pod
+      ## At this moment only LoadBalancer is supported
+      ##
+      type: LoadBalancer
