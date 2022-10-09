@@ -21,3 +21,4 @@ kubectl proxy
 
 helm dependency build 
 helm install test ./
+helm install test ./ --set cluster.nodes=3
