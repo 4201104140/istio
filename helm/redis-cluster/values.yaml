@@ -1,6 +1,21 @@
 global:
   imageRegistry: ""
 
+## Enable diagnostic mode in the deployment
+##
+diagnosticMode:
+  ## @param diagnosticMode.enabled Enable diagnostic mode (all probes will be disabled and the command will be overridden)
+  ##
+  enabled: false
+  ## @param diagnosticMode.command Command to override all containers in the deployment
+  ##
+  command:
+    - sleep
+  ## @param diagnosticMode.args Args to override all containers in the deployment
+  ##
+  args:
+    - infinity
+
 ## Bitnami Redis&reg; image version
 ## ref: https://hub.docker.com/r/bitnami/redis/tags/
 ## @param image.registry Redis&reg; cluster image registry
@@ -36,6 +51,63 @@ image:
   ##
   debug: false
 
+serviceAccount:
+  ## @param serviceAccount.create Specifies whether a ServiceAccount should be created
+  ##
+  create: false
+  ## @param serviceAccount.name The name of the ServiceAccount to create
+  ## If not set and create is true, a name is generated using the fullname template
+  ##
+  name: ""
+  ## @param serviceAccount.annotations Annotations for Cassandra Service Account
+  ##
+  annotations: {}
+  ## @param serviceAccount.automountServiceAccountToken Automount API credentials for a service account.
+  ##
+  automountServiceAccountToken: false
+
+rbac:
+  ## @param rbac.create Specifies whether RBAC resources should be created
+  ##
+  create: false
+  role:
+    ## @param rbac.role.rules Rules to create. It follows the role specification
+    ## rules:
+    ##  - apiGroups:
+    ##    - extensions
+    ##    resources:
+    ##      - podsecuritypolicies
+    ##    verbs:
+    ##      - use
+    ##    resourceNames:
+    ##      - gce.unprivileged
+    ##
+    rules: []
+## Redis&reg; pod Security Context
+## @param podSecurityContext.enabled Enable Redis&reg; pod Security Context
+## @param podSecurityContext.fsGroup Group ID for the pods
+## @param podSecurityContext.runAsUser User ID for the pods
+## @param podSecurityContext.sysctls Set namespaced sysctls for the pods
+##
+
+## Containers Security Context
+## @param containerSecurityContext.enabled Enable Containers' Security Context
+## @param containerSecurityContext.runAsUser User ID for the containers.
+## @param containerSecurityContext.runAsNonRoot Run container as non root
+##
+containerSecurityContext:
+  enabled: true
+  runAsUser: 1001
+  runAsNonRoot: true
+
+##
+## TLS configuration
+##
+tls:
+  ## @param tls.enabled Enable TLS support for replication traffic
+  ##
+  enabled: false
+
 redis:
   ## @param redis.containerPorts.redis Redis&reg; port
   ## @param redis.containerPorts.bus The busPort should be obtained adding 10000 to the redisPort. By default: 10000 + 6379 = 16379
@@ -44,6 +116,54 @@ redis:
     redis: 6379
     bus: 16379
 
+  ## Configure extra options for Redis&reg; liveness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
+  ## @param redis.livenessProbe.enabled Enable livenessProbe
+  ## @param redis.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+  ## @param redis.livenessProbe.periodSeconds Period seconds for livenessProbe
+  ## @param redis.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+  ## @param redis.livenessProbe.failureThreshold Failure threshold for livenessProbe
+  ## @param redis.livenessProbe.successThreshold Success threshold for livenessProbe
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 5
+  ## Configure extra options for Redis&reg; readiness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
+  ## @param redis.readinessProbe.enabled Enable readinessProbe
+  ## @param redis.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+  ## @param redis.readinessProbe.periodSeconds Period seconds for readinessProbe
+  ## @param redis.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+  ## @param redis.readinessProbe.failureThreshold Failure threshold for readinessProbe
+  ## @param redis.readinessProbe.successThreshold Success threshold for readinessProbe
+  ##
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 5
+  ## @param redis.startupProbe.enabled Enable startupProbe
+  ## @param redis.startupProbe.path Path to check for startupProbe
+  ## @param redis.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+  ## @param redis.startupProbe.periodSeconds Period seconds for startupProbe
+  ## @param redis.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+  ## @param redis.startupProbe.failureThreshold Failure threshold for startupProbe
+  ## @param redis.startupProbe.successThreshold Success threshold for startupProbe
+  ##
+  startupProbe:
+    enabled: false
+    path: /
+    initialDelaySeconds: 300
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
 ## Redis&reg; Service properties for standalone mode.
 ##
 service:
@@ -51,12 +171,22 @@ service:
   ##
   ports:
     redis: 6379
-
+  ## Node ports to expose
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+  ## @param service.nodePorts.redis Node port for Redis
+  ##
+  nodePorts:
+    redis: ""
   ## @param service.type Service type for default redis service
   ## Setting this to LoadBalancer may require corresponding service annotations for loadbalancer creation to succeed.
   ## Currently supported types are ClusterIP (default) and LoadBalancer
   ##
   type: ClusterIP
+  ## @param service.clusterIP Service Cluster IP
+  ## e.g.:
+  ## clusterIP: None
+  ##
+  clusterIP: ""
 
 ## Enable persistence using Persistent Volume Claims
 ## ref: https://kubernetes.io/docs/user-guide/persistent-volumes/
@@ -80,7 +210,7 @@ persistence:
 ##
 cluster:
 
-  nodes: 6
+  nodes: 2
 
   ## Configuration to access the Redis&reg; Cluster from outside the Kubernetes cluster
   ##
@@ -93,3 +223,15 @@ cluster:
       ## At this moment only LoadBalancer is supported
       ##
       type: LoadBalancer
+
+## Sysctl InitContainer
+## Used to perform sysctl operation to modify Kernel settings (needed sometimes to avoid warnings)
+##
+sysctlImage:
+  ## @param sysctlImage.enabled Enable an init container to modify Kernel settings
+  ##
+  enabled: false
+
+  ## @param sysctlImage.mountHostSys Mount the host `/sys` folder to `/host-sys`
+  ##
+  mountHostSys: false
