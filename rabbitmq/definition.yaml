@@ -1,0 +1,12 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  replicas: 3
+  name: definition
+  labels:
+    app: rabbitmq
+  annotations:
+    some: annotation
+  persistence:
+    storageClassName: fast
+    storage: 20Gi

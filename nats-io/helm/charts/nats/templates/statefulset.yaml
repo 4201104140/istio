@@ -1,0 +1,68 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "nats.fullname" . }}
+  namespace: {{ include "nats.namespace" . }}
+  labels:
+    {{- include "nats.labels" . | nindent 4 }}
+  {{- if .Values.statefulSetAnnotations }}
+  annotations:
+    {{- toYaml .Values.statefulSetAnnotations | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "nats.selectorLabels" . | nindent 6 }}
+  {{- if .Values.cluster.enabled }}
+  replicas: {{ .Values.cluster.replicas }}
+  {{- else }}
+  replicas: 1
+  {{- end }}
+  serviceName: {{ include "nats.fullname" . }}
+ 
+  
+  template:
+    metadata:
+
+      labels:
+        {{- include "nats.selectorLabels" . | nindent 8 }}
+        {{- if .Values.statefulSetPodLabels }}
+        {{- tpl (toYaml .Values.statefulSetPodLabels) . | nindent 8 }}
+        {{- end }}
+    spec:
+
+      volumes:
+
+      # Local volume shared with the reloader.
+      - name: pid
+        emptyDir: {}
+        
+      containers:
+      - name: nats
+        image: {{ .Values.nats.image }}
+        imagePullPolicy: {{ .Values.nats.pullPolicy }}
+
+  volumeClaimTemplates:
+  {{- if eq .Values.auth.resolver.type "full" }}
+  {{- if and .Values.auth.resolver .Values.auth.resolver.store }}
+  #####################################
+  #                                   #
+  #  Account Server Embedded JWT      #
+  #                                   #
+  #####################################
+    - metadata:
+        name: nats-jwt-pvc
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.auth.resolver.store.size }}
+        {{- if .Values.auth.resolver.store.storageClassName }}
+        storageClassName: {{ .Values.auth.resolver.store.storageClassName | quote }}
+        {{- end }}
+  {{- end }}
+  {{- end }}
+
+  {{}}
