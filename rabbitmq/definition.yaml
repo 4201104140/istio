@@ -1,12 +1,7 @@
+---
 apiVersion: rabbitmq.com/v1beta1
 kind: RabbitmqCluster
 metadata:
+  name: azitask-rabbitmq
+spec:
   replicas: 3
-  name: definition
-  labels:
-    app: rabbitmq
-  annotations:
-    some: annotation
-  persistence:
-    storageClassName: fast
-    storage: 20Gi
